@@ -1,0 +1,299 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang16393{\fonttbl{\f0\fnil\fcharset0 Cambria;}{\f1\fnil Cambria;}{\f2\fnil\fcharset0 Calibri;}}
+{\*\generator Riched20 10.0.10240}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\b\f0\fs36\lang9 1. Explain super() in the context of inheritance.\par
+\b0 super() provides the access to those methods of the super-class (parent class) which have been overridden in a sub-class (child class) that inherits from it. Consider the code example given below, here we have a class named Square and an another class named Cube which inherits the class Square.\par
+class Square:\par
+     def __init__(self, side):\par
+         self.side = side\par
+     def area(self):\par
+         return self.side * self.side\par
+class Cube(Square):\par
+      def area(self):\par
+         face_area = self.side * self.side\par
+         return face_area * 6\par
+     def volume(self):\par
+         face_area = self.side * self.side\par
+         return face_area * self.side\par
+Note: Since Cube class does not have an __init__() method, the __init__() of Square class will be used for initialization of Cube instances (basic property of inheritance).\par
+Considering this example, we know that each face of a cube is a square and hence, face_area of Cube represents area of a Square. Now, it makes sense to evaluate face_area using area() method of the class Square rather than calculating it manually, not only this will save us from rewriting the code but also it will allow to change the area() logic from one place. But as we have overridden the area() method in Cube, we cannot call area() method of Square using self.area().\par
+Now, this is a situation where super() comes in rescue. super() returns a proxy object of the parent class and then you call the method of your choice on that proxy object, thus, we can call the area() method of Square class using super() as, super().area(). Here follows a modified definition of the class Cube.\par
+class Cube(Square):\par
+     def area(self):\par
+         return super().area() * 6\par
+     def volume(self):\par
+         return super().area() * self.side()\par
+Note that we could have called the area() of Square method as Square.area() rather than super().area() but the latter maker is easier to swap out the super-class or rename it when required, making the code much easier to maintain.\par
+Passing arguments in super() \f1\endash\par
+In the previous section, we discussed how to use super() without any parameters, but that only provides us access to the methods of that super-class which is the immediate parent of the sub-class.\par
+To access the methods of that super-class which is not an immediate parent of the sub-class, we use super() with two arguments. Let\rquote s consider an example of three classes named Square, SquarePrism and Cube to understand how to use super() with arguments.\par
+Now, a cube is just a special type of square prism whose height is equal to the side of it\rquote s base, and hence a Cube resembles a SquarePrism much more than it resembles a Square. Therefore, in this example the class Cube will inherit the class SquarePrism, and the class\par
+SquarePrism will inherit the class Square. For class Square we\rquote ll use the same definition we used in the previous section. Given below is the definition of our newly defined class, SquarePrism.\par
+class SquarePrism(Square):\par
+     def __init__(self, side, height):\par
+         self.side = side\par
+         self.height = height\par
+     def face_area(self):\par
+         base_area = super().area()\par
+         lateral_area = self.side * self.height\par
+         return base_area, lateral_area\par
+     def area(self):\par
+         base_area = super().area()\par
+         lateral_area = self.side * self.height\par
+         return 2 * base_area + 4 * lateral_area\par
+A SquarePrism instance has two attributes, the side of it\rquote s square base and the height of the square prism. The instance method face_area() returns a tuple of two numbers representing the base area of the square prism and the lateral area of the square prism. Since the base is a square, for base area of the square prism, we call the method Square.area() as super().area(). The area() method returns the total surface area of the square prism.\par
+Until now, we have used super() without any parameters, now follows the definition of the new class Cube which will demonstrate the use of super() with parameters.\par
+class Cube(SquarePrism):\par
+     def __init__(self, side)\par
+         super().__init__(side = side, height = side)\par
+     def face_area(self):\par
+         return super(SquarePrism, self).area()\par
+     def area(self):\par
+         return super().area()\par
+Unlike the methods __init__() and area(), the face_area() method of Cube is somewhat different from its counter-part SquarePrism.face_area(). For a cube the lateral area is equal to the base area and hence, it is not meaningful for the face_area() method to return a tuple, therefore, the face_area() of the class Cube will return the area of one of the cube faces.\par
+Now, since each face of the cube is a square, it is again meaningful to use the area() method of the class Square. Now, since the class Square is not an immediate parent of the class Cube, we cannot access the area() method of the class Square as super().area() as it will call the method SquarePrism.area() instead.\par
+Here we use super(SquarePrism, self).face_area() to call the area() method of the class Square. In the first argument, SquarePrism signifies that super() searches for the area() method in the immediate parent of the class SquarePrism, that is in the class Square. The use of self as the second parameter provides the context of the current Cube object to super() for the requested area() method to act upon.\par
+Remember that, to use super() in two argument form, it is necessary that the object passed as the second argument is an instance of the type passed as first argument.\par
+Note: Since the class Cube is a child of the class SquarePrism, a Cube instance is also an instance of the class SquarePrism and the class Square.\par
+Try the following code snippet and observe the output for the clarification of the above point.\par
+class Square:\par
+    def __init__(self):\par
+        pass\par
+class SquarePrism(Square):\par
+    def __init__(self):\par
+        pass\par
+class Cube(SquarePrism):\par
+    def __init__(self):\par
+        pass\par
+square = Square()\par
+squareprism = SquarePrism()\par
+cube = Cube()\par
+print(isinstance(squareprism, Square))\par
+print(isinstance(cube, Square))\par
+It is worthwhile to note that the zero argument form of super() can only be used inside a class definition as it is auto-filled by the compiler with the appropriate parameters, i.e. if we use super() inside a class, say X, super() will be converted into super(X, self) by the compiler.\par
+While the zero-argument form of super() is popular among developers the two argument form might not seem to be of much use for now. But in multiple inheritance, the two argument form plays a very important role.\par
+\b\f0\lang16393 2. Describe the file-handling system.\par
+\b0 A file management system is used for file maintenance (or management) operations. It is is a type of software that manages data files in a computer system.\par
+A file management system has limited capabilities and is designed to manage individual or group files, such as special office documents and records. It may display report details, like owner, creation date, state of completion and similar features useful in an office environment.\par
+A file management system is also known as a file manager.\par
+Data on every computer is stored in a complex hierarchical file system constituted of directories and subdirectories beneath them. Files are stashed inside these directories, usually following pre-determined hierarchical structures determined by a program\rquote s instructions.\par
+However, many other files such as pictures, videos and documents are arranged by the user according to his or her own will. A file management system ultimately is the software used to arrange these files, move them, and work with them. In fact, file management systems take care of how the files are organized rather than just how they are stored.\par
+A file management system's tracking component is key to the creation and management of this system, where documents containing various stages of processing are shared and interchanged on an ongoing basis. It consists of a straightforward interface where stored files are displayed. It allows the user to browse, move, and sort them according to different criteria such as date of last modification, date of creation, file type/format, size, etc.\par
+The system may contain features like:\par
+Assigning queued document numbers for processing.\par
+Owner and process mapping to track various stages of processing.\par
+Report generation.\par
+Notes.\par
+Status.\par
+Create, modify, move, copy, delete and other file operations.\par
+Add or edit basic metadata.\par
+In Microsoft Windows operating systems, the default file management system is Windows Explorer. On Mac computers, instead, this role is taken belongs to a tool called Finder. Although the functionality offered by these file management systems is pretty basic, they are usually enough for most users.\par
+However, some businesses might want more advanced tools that can, for example, understand the differences between files of the same format or sort them according to their content.\par
+More advanced file management systems can provide additional functions, such as document management software (DMS) which can organize important documents. Files are assigned a label or indexed according to their attributes to build a searchable database for faster retrieval.\par
+A file management system should not be confused with a file system, which manages all types of data and files in an operating system (OS), or a database management system (DBMS), which has relational database capabilities and includes a programming language for further data manipulation.\par
+\b 3. In Python, explain multiple inheritance.\par
+\b0 A class can be derived from more than one base class in Python, similar to C++. This is called multiple inheritance.\par
+In multiple inheritance, the features of all the base classes are inherited into the derived class. The syntax for multiple inheritance is similar to single inheritance.\par
+Example\par
+class Base1:\par
+    pass\par
+class Base2:\par
+    pass\par
+class MultiDerived(Base1, Base2):\par
+    pass\par
+Here, the MultiDerived class is derived from Base1 and Base2 classes.\par
+Multiple Inheritance in Python\par
+Multiple Inheritance in Python\par
+The MultiDerived class inherits from both Base1 and Base2 classes.\par
+Python Multilevel Inheritance\par
+We can also inherit from a derived class. This is called multilevel inheritance. It can be of any depth in Python.\par
+In multilevel inheritance, features of the base class and the derived class are inherited into the new derived class.\par
+An example with corresponding visualization is given below.\par
+class Base:\par
+    pass\par
+class Derived1(Base):\par
+    pass\par
+class Derived2(Derived1):\par
+    pass\par
+Here, the Derived1 class is derived from the Base class, and the Derived2 class is derived from the Derived1 class.\par
+Multilevel Inheritance in Python\par
+Multilevel Inheritance in Python\par
+Method Resolution Order in Python\par
+Every class in Python is derived from the object class. It is the most base type in Python.\par
+So technically, all other classes, either built-in or user-defined, are derived classes and all objects are instances of the object class.\par
+# Output: True\par
+print(issubclass(list,object))\par
+# Output: True\par
+print(isinstance(5.5,object))\par
+# Output: True\par
+print(isinstance("Hello",object))\par
+Run Code\par
+In the multiple inheritance scenario, any specified attribute is searched first in the current class. If not found, the search continues into parent classes in depth-first, left-right fashion without searching the same class twice.\par
+So, in the above example of MultiDerived class the search order is [MultiDerived, Base1, Base2, object]. This order is also called linearization of MultiDerived class and the set of rules used to find this order is called Method Resolution Order (MRO).\par
+MRO must prevent local precedence ordering and also provide monotonicity. It ensures that a class always appears before its parents. In case of multiple parents, the order is the same as tuples of base classes.\par
+MRO of a class can be viewed as the __mro__ attribute or the mro() method. The former returns a tuple while the latter returns a list.\par
+>>> MultiDerived.__mro__\par
+(<class '__main__.MultiDerived'>,\par
+ <class '__main__.Base1'>,\par
+ <class '__main__.Base2'>,\par
+ <class 'object'>)\par
+>>> MultiDerived.mro()\par
+[<class '__main__.MultiDerived'>,\par
+ <class '__main__.Base1'>,\par
+ <class '__main__.Base2'>,\par
+ <class 'object'>]\par
+Here is a little more complex multiple inheritance example and its visualization along with the MRO.\par
+Multiple Inheritance Visualization\par
+Visualizing Multiple Inheritance in Python\par
+# Demonstration of MRO\par
+class X:\par
+    pass\par
+class Y:\par
+    pass\par
+class Z:\par
+    pass\par
+class A(X, Y):\par
+    pass\par
+class B(Y, Z):\par
+   pass\par
+class M(B, A, Z):\par
+    pass\par
+# Output:\par
+# [<class '__main__.M'>, <class '__main__.B'>,\par
+#  <class '__main__.A'>, <class '__main__.X'>,\par
+#  <class '__main__.Y'>, <class '__main__.Z'>,\par
+#  <class 'object'>]\par
+print(M.mro())\par
+Run Code\par
+Output\par
+[<class '__main__.M'>, <class '__main__.B'>, <class '__main__.A'>, <class '__main__.X'>, <class '__main__.Y'>, <class '__main__.Z'>, <class 'object'>]\par
+\b 4. Write the MySQL query syntax for INSERT, UPDATE, and DROP.\par
+\b0 n MySQL Tutorial Point; You will learn how to use MySQL statements like SELECT, INSERT INTO, UPDATE, DELETE with examples.\par
+Here, We will describe about the MySQL most used statement. we would love to share with you how insert or delete/remove single or multiple rows into MySQL database table, how to select or update data into MySQL database table.\par
+The most commonly used statement of MySQL Select statement. MySQL SELECT statement used to fetch data/records from database table.\par
+In the INSERT INTO statement of MySQL, you can insert single or multiple rows into the database table.\par
+MySQL UPDATE statement, you can update the single row using the UPDATE & WHERE clause statement at a time.\par
+The DELETE statement is used to remove/delete a specific row or multiple rows using the MySQL DELETE & WHERE clause.\par
+Table Of Content\par
+SELECT Statement MySQL\par
+INSERT Statement MySQL\par
+UPDATE Statement MySQL\par
+DELETE Statement MySQL\par
+SELECT Statement MySQL\par
+In MySQL, The SELECT statement is the most commonly used MySQL statement. You can use the SELECT statement to fetch or get data from one or more tables within the database. With SELECT statement of MySQL, you can fetch all fields of table or specified fields.\par
+Syntax\par
+In MySQL SELECT statement syntax is :-\par
+ SELECT field1, field2 \'85 field n\par
+ FROM Table  \par
+ [WHERE conditions];  \par
+Params\par
+Fields :- It\rquote s a database column name. You can fetch one or more fields using SELECT statement.\par
+Table :- It\rquote s a database table name.\par
+WHERE :- It\rquote s a option. If You want to filter some data that time specify any condition using the WHERE clause.\par
+SELECT Statement Example\par
+ SELECT users.id, users.name, users.age  \par
+ FROM users  \par
+ WHERE status = active;\par
+INSERT INTO Statement MySQL\par
+In MySQL, You can use the INSERT INTO statement to insert data to your database table. With INSERT INTO statement of MySQL, you insert single row or multiple rows into database table.\par
+Syntax\par
+In MySQL INSERT INTO statement syntax is :-\par
+ INSERT INTO table_name ( field1, field2,\'85fieldN )  \par
+ VALUES ( value1, value2,\'85valueN );  \par
+Params\par
+Fields :- It\rquote s a database column name. You can insert value into in it.\par
+table_name :- It\rquote s a database table name.\par
+Value :- It\rquote s your column values, that you want to insert into database\par
+INSERT INTO Statement Example\par
+Here, we will insert single row into database table name users.\par
+INSERT INTO users(id,name) VALUES (1, 'test');  \par
+Here, we will insert multiple rows into database table name users.\par
+INSERT INTO users  \par
+ (id, first_name, last_name)  \par
+ VALUES  \par
+ (5, 'wis', 'check'),  \par
+ (6, 'joy', 'son'),  \par
+ (7, 'kemal', 'case');\par
+UPDATE Statement MySQL\par
+In MySQL, You can use the UPDATE statement to update or change data to your database table. With UPDATE statement of MySQL, you can change or modify table data by using MySQL WHERE Clause.\par
+Syntax\par
+In MySQL UPDATE statement syntax is :-\par
+UPDATE table_name SET field1=new-value1, field2=new-value2  \par
+[WHERE Clause]  \par
+Params\par
+table_name: \f1\endash  This is the name of a database table.\par
+Fields: \endash  This is a database column name. Where you can update the value in it\par
+Value: \endash  These are your column values, which you want to update in the database.\par
+WHERE: \endash  In MySQL, where the clause is used to update specific rows in a table.\par
+UPDATE Statement Example\par
+Here, we will update data into database table using UPDATE AND WHERE Clause statement of MySQL.\par
+ UPDATE users\par
+ SET first_name = 'Michel'\par
+ WHERE id = 501;\par
+DELETE Statement MySQL\par
+In MySQL, You can use the DELETE statement to delete/remove all the data from database table.\par
+You can delete/remove records single data from the databse table on the basis of conditions.\par
+Syntax\par
+In MySQL DELETE statement syntax is :-\par
+DELETE FROM table_name;\par
+OR\par
+DELETE FROM table_name\par
+[WHERE Clause]; \par
+Params\par
+table_name: \endash  This is the name of a database table.\par
+WHERE: \endash  In MySQL, where clause is used to delete specific rows in a database table.\par
+DELETE Statement Example\par
+Here, we will delete/remove data into database table using DELETE AND WHERE Clause statement of MySQL.\par
+DELETE FROM users  \par
+WHERE id = 15;  \par
+DELETE All Record From Table Example\par
+In MySQL, You can use the following syntax for delete all records from databse table.\par
+DELETE FROM users;\par
+Conclusion\par
+In this MySQL Tutorial Point \endash  We have learned a MySQL SELECT, INSERT INTO, UPDATE, DELETE query with syntax and example.\par
+\b\f0 5. Describe MongoDB's features.\par
+\b0 MongoDB is an open-source document-oriented database that is designed to store a large scale of data and also allows you to work with that data very efficiently. It is categorized under the NoSQL (Not only SQL) database because the storage and retrieval of data in the MongoDB are not in the form of tables. \par
+The MongoDB database is developed and managed by MongoDB.Inc under SSPL(Server Side Public License) and initially released in February 2009. It also provides official driver support for all the popular languages like C, C++, C#, and .Net, Go, Java, Node.js, Perl, PHP, Python, Motor, Ruby, Scala, Swift, Mongoid. So, that you can create an application using any of these languages. Nowadays there are so many companies that used MongoDB like Facebook, Nokia, eBay, Adobe, Google, etc. to store their large amount of data. \par
+Now, we will see how actually thing happens behind the scene. As we know that MongoDB is a database server and the data is stored in these databases. Or in other words, MongoDB environment gives you a server that you can start and then create multiple databases on it using MongoDB. \par
+Because of its NoSQL database, the data is stored in the collections and documents. Hence the database, collection, and documents are related to each other as shown below: \par
+mongodb-nosql-working\par
+The MongoDB database contains collections just like the MYSQL database contains tables. You are allowed to create multiple databases and multiple collections.\par
+Now inside of the collection we have documents. These documents contain the data we want to store in the MongoDB database and a single collection can contain multiple documents and you are schema-less means it is not necessary that one document is similar to another.\par
+The documents are created using the fields. Fields are key-value pairs in the documents, it is just like columns in the relation database. The value of the fields can be of any BSON data types like double, string, boolean, etc.\par
+The data stored in the MongoDB is in the format of BSON documents. Here, BSON stands for Binary representation of JSON documents. Or in other words, in the backend, the MongoDB server converts the JSON data into a binary form that is known as BSON and this BSON is stored and queried more efficiently.\par
+In MongoDB documents, you are allowed to store nested data. This nesting of data allows you to create complex relations between data and store them in the same document which makes the working and fetching of data extremely efficient as compared to SQL. In SQL, you need to write complex joins to get the data from table 1 and table 2. The maximum size of the BSON document is 16MB.\par
+NOTE: In MongoDB server, you are allowed to run multiple databases. \par
+For example, we have a database named GeeksforGeeks. Inside this database, we have two collections and in these collections we have two documents. And in these documents we store our data in the form of fields. As shown in the below image: \par
+Some major differences in between MongoDB and the RDBMS are as follows: \par
+MongoDB\tab RDBMS\par
+It is a non-relational and document-oriented database.It is a relational database.\par
+It is suitable for hierarchical data storage.\tab It is not suitable for hierarchical data storage.\par
+It has a dynamic schema.\tab It has a predefined schema.\par
+It centers around the CAP theorem (Consistency, Availability, and Partition tolerance).\tab It centers around ACID properties (Atomicity, Consistency, Isolation, and Durability).\par
+In terms of performance, it is much faster than RDBMS.In terms of performance, it is slower than MongoDB.\par
+Features of MongoDB \f1\endash\par
+Schema-less Database: It is the great feature provided by the MongoDB. A Schema-less database means one collection can hold different types of documents in it. Or in other words, in the MongoDB database, a single collection can hold multiple documents and these documents may consist of the different numbers of fields, content, and size. It is not necessary that the one document is similar to another document like in the relational databases. Due to this cool feature, MongoDB provides great flexibility to databases.\par
+Document Oriented: In MongoDB, all the data stored in the documents instead of tables like in RDBMS. In these documents, the data is stored in fields(key-value pair) instead of rows and columns which make the data much more flexible in comparison to RDBMS. And each document contains its unique object id.\par
+Indexing: In MongoDB database, every field in the documents is indexed with primary and secondary indices this makes easier and takes less time to get or search data from the pool of the data. If the data is not indexed, then database search each document with the specified query which takes lots of time and not so efficient.\par
+Scalability: MongoDB provides horizontal scalability with the help of sharding. Sharding means to distribute data on multiple servers, here a large amount of data is partitioned into data chunks using the shard key, and these data chunks are evenly distributed across shards that reside across many physical servers. It will also add new machines to a running database.\par
+Replication: MongoDB provides high availability and redundancy with the help of replication, it creates multiple copies of the data and sends these copies to a different server so that if one server fails, then the data is retrieved from another server.\par
+Aggregation: It allows to perform operations on the grouped data and get a single result or computed result. It is similar to the SQL GROUPBY clause. It provides three different aggregations i.e, aggregation pipeline, map-reduce function, and single-purpose aggregation methods\par
+High Performance: The performance of MongoDB is very high and data persistence as compared to another database due to its features like scalability, indexing, replication, etc.\par
+Advantages of MongoDB : \par
+It is a schema-less NoSQL database. You need not to design the schema of the database when you are working with MongoDB.\par
+It does not support join operation.\par
+It provides great flexibility to the fields in the documents.\par
+It contains heterogeneous data.\par
+It provides high performance, availability, scalability.\par
+It supports Geospatial efficiently.\par
+It is a document oriented database and the data is stored in BSON documents.\par
+It also supports multiple document ACID transition(string from MongoDB 4.0).\par
+It does not require any SQL injection.\par
+It is easily integrated with Big Data Hadoop\par
+Disadvantages of MongoDB : \par
+It uses high memory for data storage.\par
+You are not allowed to store more than 16MB data in the documents.\par
+The nesting of data in BSON is also limited you are not allowed to nest data more than 100 levels.\par
+\par
+ \f2\fs22\lang9\par
+}
+ 
